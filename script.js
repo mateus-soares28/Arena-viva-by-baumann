@@ -2,10 +2,30 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matc
 const animationReady = typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined';
 const preload = document.querySelector('.preloader');
 
+if (animationReady) gsap.registerPlugin(ScrollTrigger);
+
+if (typeof Lenis !== 'undefined') {
+  const lenis = new Lenis({
+    anchors: true,
+    lerp: 0.1
+  });
+
+  if (animationReady) {
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(time => lenis.raf(time * 1000));
+    gsap.ticker.lagSmoothing(0);
+  } else {
+    const raf = time => {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    };
+
+    requestAnimationFrame(raf);
+  }
+}
+
 function setupReveals() {
   if (reducedMotion || !animationReady) return;
-
-  gsap.registerPlugin(ScrollTrigger);
 
   document.querySelectorAll('.section [data-reveal]').forEach(element => {
     const direction = element.dataset.reveal === 'right' ? 1 : -1;
